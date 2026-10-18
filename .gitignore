@@ -1,0 +1,53 @@
+# Local environment files; publish only the sanitized template
+.env
+.env.*
+!.env.example
+
+# Local runtime data and logs
+data/
+logs/
+.run/
+
+# Virtual environments and installed dependencies
+.venv/
+venv/
+node_modules/
+
+# Build output and generated caches
+dist/
+build/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.vite/
+coverage/
+htmlcov/
+*.py[cod]
+*.tsbuildinfo
+*.egg-info/
+.coverage
+coverage.xml
+*.log
+
+# Local databases and SQLite sidecars
+*.db
+*.sqlite
+*.sqlite3
+*.db-*
+*.sqlite-*
+
+# Private keys and keystores
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Local OS files and duplicate source archive
+.DS_Store
+Thumbs.db
+/ScamTraceAI.zip

@@ -1,0 +1,147 @@
+﻿{
+    "started_at_utc":  "2026-10-18T08:58:30.8904073Z",
+    "completed_at_utc":  "2026-10-18T08:58:42.4515370Z",
+    "status":  "passed",
+    "api_base":  "http://127.0.0.1:8000/api",
+    "data_type":  "Synthetic only",
+    "results":  [
+                    {
+                        "name":  "backend health",
+                        "status":  "passed",
+                        "details":  "healthy"
+                    },
+                    {
+                        "name":  "ordinary transaction",
+                        "status":  "passed",
+                        "transaction_id":  "TX-2578DAB871",
+                        "persisted":  true
+                    },
+                    {
+                        "name":  "RAPID_MULTI_HOP",
+                        "status":  "passed",
+                        "seed":  731,
+                        "expected":  "suspicious",
+                        "transaction_ids":  [
+                                                "TX-F942A9AD40",
+                                                "TX-F8BF66619B",
+                                                "TX-A424E03664",
+                                                "TX-5A45B20E52",
+                                                "TX-884A7B4CA4",
+                                                "TX-9FD8D2D119"
+                                            ],
+                        "case_ids":  [
+                                         "CASE-5E23F872"
+                                     ],
+                        "case_count":  1,
+                        "graph_edges":  3,
+                        "detection_mode":  "event_time_processing",
+                        "late_detection":  false,
+                        "intervention":  "simulated hold"
+                    },
+                    {
+                        "name":  "COLLECTION_ACCOUNT",
+                        "status":  "passed",
+                        "seed":  732,
+                        "expected":  "suspicious",
+                        "transaction_ids":  [
+                                                "TX-82937A42BA",
+                                                "TX-2630F27133",
+                                                "TX-091384ADF3",
+                                                "TX-829247F08E"
+                                            ],
+                        "case_ids":  [
+                                         "CASE-E814DFD2"
+                                     ],
+                        "case_count":  1,
+                        "graph_edges":  4,
+                        "detection_mode":  "event_time_processing",
+                        "late_detection":  false,
+                        "intervention":  "convergence case"
+                    },
+                    {
+                        "name":  "CROSS_BANK_CHAIN",
+                        "status":  "passed",
+                        "seed":  2042,
+                        "expected":  "suspicious",
+                        "transaction_ids":  [
+                                                "TX-BA45708E91",
+                                                "TX-324274CC7E",
+                                                "TX-7ACAA68DFF"
+                                            ],
+                        "case_ids":  [
+                                         "CASE-3D4BF20D"
+                                     ],
+                        "case_count":  1,
+                        "graph_edges":  3,
+                        "detection_mode":  "event_time_processing",
+                        "late_detection":  false,
+                        "intervention":  "cross-bank graph"
+                    },
+                    {
+                        "name":  "BENIGN_HIGH_ACTIVITY",
+                        "status":  "passed",
+                        "seed":  733,
+                        "expected":  "benign",
+                        "transaction_ids":  [
+                                                "TX-C0FD4A0437",
+                                                "TX-8941D51AD2",
+                                                "TX-C0FE54524D",
+                                                "TX-F87BE70FAC",
+                                                "TX-85BAA08184",
+                                                "TX-0F150DE8DC",
+                                                "TX-615B2B0B73",
+                                                "TX-112539E43F",
+                                                "TX-BA22276197",
+                                                "TX-6DD3E6A6E1"
+                                            ],
+                        "case_ids":  [
+
+                                     ],
+                        "case_count":  0,
+                        "graph_edges":  0,
+                        "detection_mode":  "event_time_processing",
+                        "late_detection":  false,
+                        "intervention":  "no case"
+                    },
+                    {
+                        "name":  "LATE_DETECTION",
+                        "status":  "passed",
+                        "seed":  734,
+                        "expected":  "suspicious",
+                        "transaction_ids":  [
+                                                "TX-88192375E1",
+                                                "TX-3A8D72416B",
+                                                "TX-BB90CD148D",
+                                                "TX-BFDCF606BD",
+                                                "TX-3B9C9329D7",
+                                                "TX-43A087EAD4"
+                                            ],
+                        "case_ids":  [
+                                         "CASE-14F89E84",
+                                         "CASE-6AD65ED9",
+                                         "CASE-81FDF748",
+                                         "CASE-D2F77484"
+                                     ],
+                        "case_count":  4,
+                        "graph_edges":  15,
+                        "detection_mode":  "batch_after_settlement",
+                        "late_detection":  true,
+                        "intervention":  "pending late response"
+                    },
+                    {
+                        "name":  "reset and fixed-seed replay",
+                        "status":  "passed",
+                        "seed":  731,
+                        "transaction_ids":  [
+                                                "TX-F942A9AD40",
+                                                "TX-F8BF66619B",
+                                                "TX-A424E03664",
+                                                "TX-5A45B20E52",
+                                                "TX-884A7B4CA4",
+                                                "TX-9FD8D2D119"
+                                            ],
+                        "case_id":  "CASE-75CE6EC3"
+                    }
+                ],
+    "failure":  null
+}

@@ -1,0 +1,145 @@
+name: scamtrace-advanced
+services:
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.3.9
+    command: [redpanda, start, --overprovisioned, --smp, '1', --memory, 1G, --reserve-memory, 0M, --node-id, '0', --check=false, --kafka-addr, internal://0.0.0.0:9092,external://0.0.0.0:19092, --advertise-kafka-addr, internal://redpanda:9092,external://localhost:19092]
+    ports: ['127.0.0.1:19092:19092', '127.0.0.1:19644:9644']
+    healthcheck:
+      test: [CMD, rpk, cluster, health, --exit-when-healthy]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    profiles: [advanced]
+  postgres-age:
+    image: apache/age:PG16_latest
+    environment:
+      POSTGRES_USER: scamtrace
+      POSTGRES_PASSWORD: ${SCAMTRACE_POSTGRES_PASSWORD:?Set SCAMTRACE_POSTGRES_PASSWORD in .env or environment}
+      POSTGRES_DB: scamtrace
+    ports: ['127.0.0.1:5433:5432']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./streaming/postgres/init.sql:/docker-entrypoint-initdb.d/01-age.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U scamtrace -d scamtrace]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    profiles: [advanced]
+  flink-jobmanager:
+    build: ./streaming/flink
+    command: jobmanager
+    environment:
+      FLINK_PROPERTIES: |-
+        jobmanager.rpc.address: flink-jobmanager
+        parallelism.default: 1
+    ports: ['127.0.0.1:8082:8081']
+    profiles: [advanced]
+  flink-taskmanager:
+    build: ./streaming/flink
+    command: taskmanager
+    depends_on: [flink-jobmanager]
+    environment:
+      FLINK_PROPERTIES: |-
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 1
+    profiles: [advanced]
+  flink-detector:
+    build: ./streaming/flink
+    entrypoint: [/bin/sh, /opt/scamtrace/streaming/flink/run-job.sh]
+    volumes:
+      - ./:/opt/scamtrace:ro
+    environment:
+      SCAMTRACE_KAFKA_BOOTSTRAP: redpanda:9092
+    depends_on:
+      - flink-jobmanager
+      - flink-taskmanager
+      - redpanda
+    profiles: [advanced]
+  investigation-sandbox:
+    build: ./agent_service
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SCAMTRACE_AGENT_MODEL: ${SCAMTRACE_AGENT_MODEL:-gpt-4.1-mini}
+    ports: ['127.0.0.1:8010:8010']
+    read_only: true
+    tmpfs: ["/tmp:size=16M,noexec,nosuid"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 1g
+    profiles: [advanced]
+  temporal:
+    image: temporalio/auto-setup:1.25.2
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: scamtrace
+      POSTGRES_PWD: ${SCAMTRACE_POSTGRES_PASSWORD:?Set SCAMTRACE_POSTGRES_PASSWORD in .env or environment}
+      POSTGRES_SEEDS: temporal-postgres
+    depends_on:
+      temporal-postgres:
+        condition: service_healthy
+    ports: ['127.0.0.1:7233:7233']
+    profiles: [advanced]
+  temporal-worker:
+    build:
+      context: .
+      dockerfile: streaming/temporal/Dockerfile
+    environment:
+      SCAMTRACE_TEMPORAL_ADDRESS: temporal:7233
+      SCAMTRACE_DB: /opt/scamtrace/data/scamtrace.db
+    volumes:
+      - ./data:/opt/scamtrace/data
+    depends_on:
+      - temporal
+    restart: unless-stopped
+    profiles: [advanced]
+  temporal-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: scamtrace
+      POSTGRES_PASSWORD: ${SCAMTRACE_POSTGRES_PASSWORD:?Set SCAMTRACE_POSTGRES_PASSWORD in .env or environment}
+      POSTGRES_DB: temporal
+    volumes:
+      - temporaldata:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U scamtrace -d temporal]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    profiles: [advanced]
+  grafana:
+    image: grafana/grafana:11.5.2
+    ports: ['127.0.0.1:3000:3000']
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${SCAMTRACE_GRAFANA_PASSWORD:?Set SCAMTRACE_GRAFANA_PASSWORD in .env or environment}
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./streaming/grafana/provisioning:/etc/grafana/provisioning:ro
+    profiles: [advanced]
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    command: [--config=/etc/otelcol/config.yaml]
+    volumes:
+      - ./streaming/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    ports: ['127.0.0.1:13133:13133']
+    depends_on: [redpanda]
+    profiles: [advanced]
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.path=/prometheus]
+    volumes:
+      - ./streaming/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheusdata:/prometheus
+    ports: ['127.0.0.1:9090:9090']
+    depends_on: [otel-collector]
+    profiles: [advanced]
+volumes:
+  pgdata:
+  temporaldata:
+  grafanadata:
+  prometheusdata:

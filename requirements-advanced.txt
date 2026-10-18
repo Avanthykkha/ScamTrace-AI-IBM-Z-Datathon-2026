@@ -1,0 +1,5 @@
+-r requirements.txt
+kafka-python>=2.0,<3
+temporalio>=1.7,<2
+openai-agents>=0.0.8
+psycopg[binary]>=3.2,<4

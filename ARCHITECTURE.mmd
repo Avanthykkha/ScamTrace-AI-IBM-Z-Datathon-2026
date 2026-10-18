@@ -1,0 +1,48 @@
+flowchart LR
+  subgraph NOW[Current local synthetic prototype]
+    UI[React + TypeScript UI<br/>Vite] -->|HTTP JSON| API[FastAPI process]
+    SIM[Synthetic event simulator] --> API
+    API --> ING[Ingestion + deterministic rules]
+    ING -->|institution-scoped writes| LOCAL[(SQLite local ledgers<br/>same host/process)]
+    ING -->|allow-listed signals| CORR[(SQLite correlation.db)]
+    CORR --> DET[Rolling-window + graph rules]
+    DET --> GRAPH[NetworkX observed-flow graph]
+    DET --> CASE[Investigation cases + evidence]
+    CASE --> REPORT[Structured report<br/>optional configured LLM]
+    CASE --> INTERV[Simulated intervention]
+    INTERV --> AUDIT[(SQLite audit history)]
+    CASE --> AUDIT
+    LOCAL -. investigator-authorized<br/>projected evidence .-> CASE
+    API --> DB[(SQLite cases/settings)]
+    CASE --> DB
+    EVAL[Fixed-seed synthetic fixtures<br/>ground truth held by evaluator] -->|evaluate after detection| METRICS[Benchmark JSON]
+    METRICS --> UI
+    DET -. no labels .- EVAL
+    CORR -. optional .-> KAFKA[Redpanda / Kafka topic]
+    KAFKA --> FLINK[Flink fan-out detector]
+    FLINK --> KAFKA2[Alert topic]
+    KAFKA2 -. optional consumer .-> API
+    ING -. optional mirror .-> AGE[(PostgreSQL + AGE)]
+    INTERV -. optional lifecycle .-> TEMP[Temporal]
+  end
+
+  subgraph TARGET[Proposed enterprise deployment on LinuxONE / IBM Z Linux]
+    BANKS[Fictional participating institutions] --> LOCALPROC[Institution-local transaction systems]
+    LOCALPROC --> GATEWAY[Local disclosure policy gateway]
+    GATEWAY -->|explicitly permitted signals<br/>authenticated encrypted transport| BUS[Managed event transport]
+    BUS --> CORRSVC[Separately operated correlation service]
+    CORRSVC --> RULES[Streaming + deterministic detection]
+    RULES --> TGRAPH[Persistent transaction graph]
+    RULES --> INVEST[Investigation service<br/>evidence requests to institution]
+    INVEST --> HUM[Authorized investigator review]
+    HUM --> ADAPTER[Institution-approved response adapter]
+    ADAPTER --> SIMRESP[Audited simulated response<br/>until real authority/integration exists]
+    GATEWAY --> TAUDIT[(Protected disclosure audit)]
+    INVEST --> TAUDIT
+    SIMRESP --> TAUDIT
+    RULES --> EVAL2[Isolated synthetic evaluation]
+    SUBSTRATE[Linux on s390x: identity, secrets, TLS, storage,<br/>monitoring, backup, failover, operational controls] --- CORRSVC
+    SUBSTRATE --- BUS
+  end
+
+  NOW -. not a deployment diagram .-> TARGET

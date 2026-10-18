@@ -1,0 +1,11 @@
+{
+  "policy_id": "synthetic-cross-bank-v1",
+  "recipient": "correlation-service",
+  "signal_recipients": ["correlation-service"],
+  "purpose": "cross_bank_scam_detection",
+  "signal_fields": ["id", "ts", "sender", "receiver", "amount", "currency", "rail", "source_bank", "dest_bank", "status", "received_at", "detection_ms"],
+  "local_only_fields": ["local_account_id", "counterparty_token", "scenario_label"],
+  "evidence_fields": ["local_account_id", "institution_record_status", "local_event_time", "local_rail"],
+  "evidence_purpose": "authorized_case_review",
+  "evidence_recipients": ["participating-institution-reviewer", "authorized-investigator"]
+}
